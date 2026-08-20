@@ -211,6 +211,7 @@ wss.on('connection', (ws) => {
           lockExpiry: null,
           roundUpThreshold: 100,
           savingsPeriod: 'flex',
+          pin: '1234',
           connectedBank: null,
           transactions: [],
           inflowHistory: [],
@@ -289,6 +290,10 @@ wss.on('connection', (ws) => {
         }
         if (!receiver) {
           ws.send(JSON.stringify({ type: 'error', message: 'Recipient account not found' }))
+          return
+        }
+        if (sender.pin !== msg.pin) {
+          ws.send(JSON.stringify({ type: 'pin_error', message: 'Incorrect PIN' }))
           return
         }
         if (sender.accountNumber === receiver.accountNumber) {
@@ -559,6 +564,20 @@ wss.on('connection', (ws) => {
         }))
 
         broadcastUsers(wss.clients)
+      }
+
+      if (msg.type === 'set_pin') {
+        const user = users.get(msg.accountNumber)
+        if (!user) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Account not found' }))
+          return
+        }
+        if (msg.oldPin && user.pin !== msg.oldPin) {
+          ws.send(JSON.stringify({ type: 'pin_error', message: 'Current PIN is incorrect' }))
+          return
+        }
+        user.pin = msg.newPin
+        ws.send(JSON.stringify({ type: 'pin_success', message: 'PIN updated successfully' }))
       }
 
       if (msg.type === 'update_threshold') {

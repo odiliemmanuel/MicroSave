@@ -314,10 +314,10 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <h2 className="balance-amount" style={{
                       fontSize: '36px', fontWeight: '800', color: '#fff',
-                      filter: showBalance ? 'none' : 'blur(8px)',
+                      filter: 'none',
                       transition: 'filter 0.3s',
                     }}>
-                      {formatNaira(user.balance)}
+                      {showBalance ? formatNaira(user.balance) : '₦ ****'}
                     </h2>
                     <button
                       onClick={() => setShowBalance(!showBalance)}

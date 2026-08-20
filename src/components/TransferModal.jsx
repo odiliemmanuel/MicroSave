@@ -1,11 +1,15 @@
 import { useState } from 'react'
-import { X, Send, Search } from 'lucide-react'
+import { X, Send, Search, Shield } from 'lucide-react'
 import { formatNaira } from '../utils/helpers'
 
 export default function TransferModal({ users, currentUser, onTransfer, onClose }) {
   const [recipient, setRecipient] = useState('')
   const [amount, setAmount] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
+  const [showPin, setShowPin] = useState(false)
+  const [pin, setPin] = useState('')
+  const [pinError, setPinError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const filteredUsers = users.filter(u =>
     u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -15,10 +19,171 @@ export default function TransferModal({ users, currentUser, onTransfer, onClose 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (recipient && amount) {
-      onTransfer(recipient, amount)
+      setShowPin(true)
+      setPin('')
+      setPinError('')
     }
   }
 
+  const handlePinSubmit = () => {
+    if (pin.length !== 4) {
+      setPinError('PIN must be 4 digits')
+      return
+    }
+    setLoading(true)
+    setPinError('')
+    onTransfer(recipient, amount, pin)
+    setTimeout(() => {
+      setLoading(false)
+    }, 2000)
+  }
+
+  const handlePinInput = (digit) => {
+    if (pin.length < 4) {
+      const newPin = pin + digit
+      setPin(newPin)
+      setPinError('')
+      if (newPin.length === 4) {
+        setTimeout(() => {
+          setLoading(true)
+          onTransfer(recipient, amount, newPin)
+          setTimeout(() => setLoading(false), 2000)
+        }, 200)
+      }
+    }
+  }
+
+  const handlePinDelete = () => {
+    setPin(pin.slice(0, -1))
+    setPinError('')
+  }
+
+  // PIN entry screen
+  if (showPin) {
+    const recipientUser = users.find(u => u.accountNumber === recipient)
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '16px',
+      }}>
+        <div style={{
+          background: '#1a1a2e', border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '24px', padding: '32px 24px', width: '100%', maxWidth: '380px',
+          animation: 'fadeIn 0.2s ease-out',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>Enter PIN</h2>
+            <button onClick={() => { setShowPin(false); setPin('') }} style={{
+              background: 'rgba(255, 255, 255, 0.06)', border: 'none',
+              borderRadius: '8px', padding: '8px', cursor: 'pointer', color: '#888',
+            }}>
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Transfer summary */}
+          <div style={{
+            padding: '16px', borderRadius: '14px',
+            background: 'rgba(255, 255, 255, 0.03)',
+            border: '1px solid rgba(255, 255, 255, 0.06)',
+            marginBottom: '24px', textAlign: 'center',
+          }}>
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '6px' }}>Sending to</p>
+            <p style={{ fontSize: '15px', fontWeight: '600', color: '#fff', marginBottom: '2px' }}>
+              {recipientUser?.name || recipient}
+            </p>
+            <p style={{ fontSize: '11px', color: '#888', fontFamily: 'monospace', marginBottom: '12px' }}>
+              {recipient}
+            </p>
+            <p style={{ fontSize: '28px', fontWeight: '800', color: '#00d4aa' }}>
+              {formatNaira(parseFloat(amount))}
+            </p>
+          </div>
+
+          {/* PIN shield icon */}
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <div style={{
+              width: '48px', height: '48px', borderRadius: '50%',
+              background: 'rgba(0, 212, 170, 0.1)',
+              border: '1px solid rgba(0, 212, 170, 0.2)',
+              display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Shield size={24} color="#00d4aa" />
+            </div>
+            <p style={{ fontSize: '13px', color: '#888', marginTop: '10px' }}>
+              Enter your 4-digit PIN to confirm
+            </p>
+          </div>
+
+          {/* PIN dots */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', marginBottom: '24px' }}>
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} style={{
+                width: '16px', height: '16px', borderRadius: '50%',
+                background: i < pin.length ? '#00d4aa' : 'rgba(255, 255, 255, 0.1)',
+                border: i < pin.length ? 'none' : '1px solid rgba(255, 255, 255, 0.15)',
+                transition: 'all 0.2s',
+              }} />
+            ))}
+          </div>
+
+          {pinError && (
+            <p style={{ fontSize: '12px', color: '#ff6464', textAlign: 'center', marginBottom: '16px' }}>
+              {pinError}
+            </p>
+          )}
+
+          {/* Number pad */}
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px',
+            maxWidth: '280px', margin: '0 auto',
+          }}>
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, null, 0, 'del'].map((digit, i) => {
+              if (digit === null) return <div key={i} />
+              if (digit === 'del') {
+                return (
+                  <button key={i} onClick={handlePinDelete} style={{
+                    padding: '16px', borderRadius: '12px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                    color: '#ff6464', fontSize: '16px', fontWeight: '500',
+                    cursor: 'pointer',
+                  }}>
+                    ⌫
+                  </button>
+                )
+              }
+              return (
+                <button key={i} onClick={() => handlePinInput(String(digit))} style={{
+                  padding: '16px', borderRadius: '12px',
+                  background: 'rgba(255, 255, 255, 0.03)',
+                  border: '1px solid rgba(255, 255, 255, 0.06)',
+                  color: '#fff', fontSize: '22px', fontWeight: '600',
+                  cursor: 'pointer', transition: 'all 0.15s',
+                }}>
+                  {digit}
+                </button>
+              )
+            })}
+          </div>
+
+          {loading && (
+            <p style={{ fontSize: '12px', color: '#00d4aa', textAlign: 'center', marginTop: '16px' }}>
+              Processing transfer...
+            </p>
+          )}
+
+          <p style={{ fontSize: '11px', color: '#555', textAlign: 'center', marginTop: '16px' }}>
+            Default PIN: 1234
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Transfer form
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,

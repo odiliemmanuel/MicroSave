@@ -51,6 +51,10 @@ function App() {
       if (msg.type === 'error') {
         alert(msg.message)
       }
+
+      if (msg.type === 'pin_error') {
+        alert(msg.message)
+      }
     }
 
     ws.addEventListener('message', handleMessage)
@@ -81,9 +85,9 @@ function App() {
     }
   }
 
-  const handleTransfer = (to, amount) => {
+  const handleTransfer = (to, amount, pin) => {
     if (ws && connected && user) {
-      ws.send(JSON.stringify({ type: 'transfer', from: user.accountNumber, to, amount: parseFloat(amount) }))
+      ws.send(JSON.stringify({ type: 'transfer', from: user.accountNumber, to, amount: parseFloat(amount), pin }))
     }
   }
 
