@@ -68,6 +68,9 @@ body {
   .main-content { padding: 16px !important; }
   .balance-card { padding: 20px !important; }
   .balance-amount { font-size: 28px !important; }
+  .balance-top-row { flex-direction: column !important; gap: 16px; }
+  .balance-top-row > div:last-child { text-align: left !important; }
+  .savings-row { grid-template-columns: 1fr !important; }
   .action-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 8px !important; }
   .signup-grid { grid-template-columns: 1fr !important; gap: 24px !important; }
 }

@@ -283,7 +283,7 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
               padding: '28px 32px',
               marginBottom: '24px',
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+              <div className="balance-top-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                 <div>
                   <p style={{ fontSize: '13px', color: '#888', marginBottom: '8px' }}>Main Wallet Balance</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -330,7 +330,7 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
               </div>
 
               {/* Savings + Locked + Threshold row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
+              <div className="savings-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px' }}>
                 <div style={{
                   padding: '12px 16px', borderRadius: '12px',
                   background: 'rgba(0, 212, 170, 0.06)',
