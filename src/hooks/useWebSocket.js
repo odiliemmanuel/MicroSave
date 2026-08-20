@@ -6,8 +6,7 @@ export function useWebSocket() {
   const wsRef = useRef(null)
 
   useEffect(() => {
-    const host = window.location.hostname
-    const wsUrl = `ws://${host}:8080`
+    const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:8080'
     const ws = new WebSocket(wsUrl)
 
     ws.onopen = () => {
@@ -18,7 +17,6 @@ export function useWebSocket() {
 
     ws.onclose = () => {
       setConnected(false)
-      console.log('WebSocket disconnected')
     }
 
     ws.onerror = (err) => {

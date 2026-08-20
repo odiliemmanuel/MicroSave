@@ -1,5 +1,6 @@
 import { WebSocketServer } from 'ws'
 import { createServer } from 'http'
+import { readFileSync, existsSync } from 'fs'
 
 const users = new Map()
 let accountCounter = 2000000000
@@ -80,7 +81,24 @@ function getUserPayload(user) {
   }
 }
 
-const server = createServer((req, res) => {
+// SSL support - place cert.pem and key.pem in project root for HTTPS/WSS
+let server
+const certPath = './cert.pem'
+const keyPath = './key.pem'
+
+if (existsSync(certPath) && existsSync(keyPath)) {
+  const https = await import('https')
+  server = https.createServer({
+    cert: readFileSync(certPath),
+    key: readFileSync(keyPath),
+  })
+  console.log('SSL enabled')
+} else {
+  server = createServer()
+  console.log('No SSL certs found — running on HTTP/WS only')
+}
+
+server.on('request', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
@@ -567,11 +585,11 @@ wss.on('connection', (ws) => {
   })
 })
 
-const PORT = 8080
+const PORT = process.env.PORT || 8080
 server.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 MicroSave Server running`)
-  console.log(`   WebSocket: ws://localhost:${PORT}`)
-  console.log(`   REST API:  http://localhost:${PORT}/api/health`)
-  console.log(`   Stats:     http://localhost:${PORT}/api/v1/stats`)
-  console.log(`   Users:     http://localhost:${PORT}/api/v1/users\n`)
+  console.log(`   Port:     ${PORT}`)
+  console.log(`   REST API: http://localhost:${PORT}/api/health`)
+  console.log(`   Stats:    http://localhost:${PORT}/api/v1/stats`)
+  console.log(`   Users:    http://localhost:${PORT}/api/v1/users\n`)
 })
