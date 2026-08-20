@@ -3,7 +3,7 @@ import {
   Eye, EyeOff, Copy, ArrowUpRight, ArrowDownLeft, PiggyBank,
   TrendingUp, Zap, Target, Users, Award, Bell, ChevronRight,
   Send, Check, Lock, Unlock, Settings, Link2,
-  Building2, Shield, BarChart3, Globe
+  Building2, Shield, BarChart3, Globe, LogOut
 } from 'lucide-react'
 import { formatNaira, timeAgo } from '../utils/helpers'
 import TransferModal from './TransferModal'
@@ -16,7 +16,7 @@ import SavingsChallenges from './SavingsChallenges'
 import CommunitySavings from './CommunitySavings'
 import AiNudges from './AiNudges'
 
-export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, onUnlock, onConnectBank, onUpdateThreshold, connected, autoSaveNotif }) {
+export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, onUnlock, onConnectBank, onUpdateThreshold, onSignOut, connected, autoSaveNotif }) {
   const [showBalance, setShowBalance] = useState(true)
   const [showTransfer, setShowTransfer] = useState(false)
   const [showSave, setShowSave] = useState(false)
@@ -210,6 +210,20 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
           <p style={{ fontSize: '22px', fontWeight: '700', color: '#fff' }}>7 days</p>
           <p style={{ fontSize: '11px', color: '#888', marginTop: '4px' }}>Keep it going!</p>
         </div>
+
+        <button
+          onClick={onSignOut}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            padding: '10px 12px', borderRadius: '10px', border: 'none', marginTop: '16px',
+            background: 'transparent', color: '#ff6464',
+            fontSize: '13px', fontWeight: '500', cursor: 'pointer', transition: 'all 0.2s',
+            textAlign: 'left', width: '100%',
+          }}
+        >
+          <LogOut size={18} />
+          Sign Out
+        </button>
       </aside>
 
       {/* Main Content */}
@@ -270,6 +284,17 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
               }} />
               {connected ? 'Live' : 'Offline'}
             </div>
+
+            <button
+              onClick={onSignOut}
+              style={{
+                background: 'rgba(255, 100, 100, 0.1)', border: '1px solid rgba(255, 100, 100, 0.2)',
+                borderRadius: '8px', padding: '8px', cursor: 'pointer', color: '#ff6464',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <LogOut size={16} />
+            </button>
           </div>
         </header>
 

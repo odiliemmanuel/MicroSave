@@ -4,10 +4,21 @@ import Dashboard from './components/Dashboard'
 import { useWebSocket } from './hooks/useWebSocket'
 
 function App() {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(() => {
+    const saved = localStorage.getItem('microsave_user')
+    return saved ? JSON.parse(saved) : null
+  })
   const [allUsers, setAllUsers] = useState([])
   const [autoSaveNotif, setAutoSaveNotif] = useState(null)
   const { ws, connected, ready } = useWebSocket()
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('microsave_user', JSON.stringify(user))
+    } else {
+      localStorage.removeItem('microsave_user')
+    }
+  }, [user])
 
   useEffect(() => {
     if (!ws) return
@@ -15,7 +26,7 @@ function App() {
     const handleMessage = (e) => {
       const msg = JSON.parse(e.data)
 
-      if (msg.type === 'signup_success' || msg.type === 'transfer_success' || msg.type === 'save_success' || msg.type === 'transfer_received' || msg.type === 'bank_connected' || msg.type === 'lock_success' || msg.type === 'unlock_success' || msg.type === 'threshold_updated') {
+      if (msg.type === 'signup_success' || msg.type === 'signin_success' || msg.type === 'transfer_success' || msg.type === 'save_success' || msg.type === 'transfer_received' || msg.type === 'bank_connected' || msg.type === 'lock_success' || msg.type === 'unlock_success' || msg.type === 'threshold_updated') {
         setUser(msg.user)
       }
 
@@ -45,6 +56,12 @@ function App() {
     ws.addEventListener('message', handleMessage)
     return () => ws.removeEventListener('message', handleMessage)
   }, [ws])
+
+  useEffect(() => {
+    if (ws && connected && user) {
+      ws.send(JSON.stringify({ type: 'signin', email: user.email }))
+    }
+  }, [connected])
 
   const handleSignup = (name, email) => {
     if (ws && connected) {
@@ -94,6 +111,11 @@ function App() {
     }
   }
 
+  const handleSignOut = () => {
+    setUser(null)
+    localStorage.removeItem('microsave_user')
+  }
+
   if (!user) {
     return <Signup onSignup={handleSignup} onSignIn={handleSignIn} ready={ready} />
   }
@@ -108,6 +130,7 @@ function App() {
       onUnlock={handleUnlock}
       onConnectBank={handleConnectBank}
       onUpdateThreshold={handleUpdateThreshold}
+      onSignOut={handleSignOut}
       connected={connected}
       autoSaveNotif={autoSaveNotif}
     />
