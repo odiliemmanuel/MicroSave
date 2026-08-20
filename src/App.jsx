@@ -7,7 +7,7 @@ function App() {
   const [user, setUser] = useState(null)
   const [allUsers, setAllUsers] = useState([])
   const [autoSaveNotif, setAutoSaveNotif] = useState(null)
-  const { ws, connected } = useWebSocket()
+  const { ws, connected, ready } = useWebSocket()
 
   useEffect(() => {
     if (!ws) return
@@ -15,7 +15,7 @@ function App() {
     const handleMessage = (e) => {
       const msg = JSON.parse(e.data)
 
-      if (msg.type === 'signup_success' || msg.type === 'transfer_success' || msg.type === 'withdraw_success' || msg.type === 'save_success' || msg.type === 'transfer_received' || msg.type === 'bank_connected' || msg.type === 'lock_success' || msg.type === 'unlock_success' || msg.type === 'threshold_updated') {
+      if (msg.type === 'signup_success' || msg.type === 'transfer_success' || msg.type === 'save_success' || msg.type === 'transfer_received' || msg.type === 'bank_connected' || msg.type === 'lock_success' || msg.type === 'unlock_success' || msg.type === 'threshold_updated') {
         setUser(msg.user)
       }
 
@@ -24,13 +24,11 @@ function App() {
       }
 
       if (msg.type === 'auto_save') {
-        // Update user state with new balance and savings
         setUser(prev => prev ? {
           ...prev,
           balance: msg.balance,
           savings: msg.savings,
         } : prev)
-        // Show auto-save notification
         setAutoSaveNotif({ id: Date.now(), message: msg.message, amount: msg.amount })
         setTimeout(() => setAutoSaveNotif(null), 4000)
       }
@@ -97,7 +95,7 @@ function App() {
   }
 
   if (!user) {
-    return <Signup onSignup={handleSignup} onSignIn={handleSignIn} />
+    return <Signup onSignup={handleSignup} onSignIn={handleSignIn} ready={ready} />
   }
 
   return (

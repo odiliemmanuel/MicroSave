@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Wallet, ArrowRight, Shield, Zap, Users, LogIn } from 'lucide-react'
 
-export default function Signup({ onSignup, onSignIn }) {
+export default function Signup({ onSignup, onSignIn, ready }) {
   const [mode, setMode] = useState('signup')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -12,6 +12,7 @@ export default function Signup({ onSignup, onSignIn }) {
     if (name && email) {
       setLoading(true)
       onSignup(name, email)
+      setTimeout(() => setLoading(false), 3000)
     }
   }
 
@@ -20,6 +21,7 @@ export default function Signup({ onSignup, onSignIn }) {
     if (email) {
       setLoading(true)
       onSignIn(email)
+      setTimeout(() => setLoading(false), 3000)
     }
   }
 
@@ -32,7 +34,7 @@ export default function Signup({ onSignup, onSignIn }) {
       background: 'linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 50%, #0a0a1a 100%)',
       padding: '20px',
     }}>
-      <div style={{
+      <div className="signup-grid" style={{
         width: '100%',
         maxWidth: '900px',
         display: 'grid',
@@ -183,14 +185,14 @@ export default function Signup({ onSignup, onSignIn }) {
 
                 <button
                   type="submit"
-                  disabled={!name || !email || loading}
+                  disabled={!name || !email || loading || !ready}
                   style={{
                     width: '100%', padding: '14px',
-                    background: name && email ? 'linear-gradient(135deg, #00d4aa, #00a882)' : 'rgba(255, 255, 255, 0.1)',
+                    background: name && email && ready ? 'linear-gradient(135deg, #00d4aa, #00a882)' : 'rgba(255, 255, 255, 0.1)',
                     border: 'none', borderRadius: '12px',
-                    color: name && email ? '#fff' : '#666',
+                    color: name && email && ready ? '#fff' : '#666',
                     fontSize: '16px', fontWeight: '600',
-                    cursor: name && email ? 'pointer' : 'not-allowed',
+                    cursor: name && email && ready ? 'pointer' : 'not-allowed',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                   }}
                 >
@@ -227,14 +229,14 @@ export default function Signup({ onSignup, onSignIn }) {
 
                 <button
                   type="submit"
-                  disabled={!email || loading}
+                  disabled={!email || loading || !ready}
                   style={{
                     width: '100%', padding: '14px',
-                    background: email ? 'linear-gradient(135deg, #00d4aa, #00a882)' : 'rgba(255, 255, 255, 0.1)',
+                    background: email && ready ? 'linear-gradient(135deg, #00d4aa, #00a882)' : 'rgba(255, 255, 255, 0.1)',
                     border: 'none', borderRadius: '12px',
-                    color: email ? '#fff' : '#666',
+                    color: email && ready ? '#fff' : '#666',
                     fontSize: '16px', fontWeight: '600',
-                    cursor: email ? 'pointer' : 'not-allowed',
+                    cursor: email && ready ? 'pointer' : 'not-allowed',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
                   }}
                 >
@@ -250,6 +252,20 @@ export default function Signup({ onSignup, onSignIn }) {
               ? 'By signing up, you agree to our Terms of Service'
               : "Don't have an account? Switch to Sign Up"}
           </p>
+
+          {/* Connection status */}
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: '6px', marginTop: '12px',
+          }}>
+            <div style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: ready ? '#00d4aa' : '#ff6464',
+            }} />
+            <span style={{ fontSize: '11px', color: ready ? '#00d4aa' : '#ff6464' }}>
+              {ready ? 'Connected' : 'Connecting...'}
+            </span>
+          </div>
         </div>
       </div>
     </div>

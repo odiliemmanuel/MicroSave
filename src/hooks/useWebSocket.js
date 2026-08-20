@@ -2,15 +2,18 @@ import { useState, useEffect, useRef } from 'react'
 
 export function useWebSocket() {
   const [connected, setConnected] = useState(false)
+  const [ready, setReady] = useState(false)
   const wsRef = useRef(null)
 
   useEffect(() => {
-    const wsUrl = `ws://localhost:8080`
+    const host = window.location.hostname
+    const wsUrl = `ws://${host}:8080`
     const ws = new WebSocket(wsUrl)
 
     ws.onopen = () => {
       setConnected(true)
-      console.log('WebSocket connected')
+      setReady(true)
+      console.log('WebSocket connected to', wsUrl)
     }
 
     ws.onclose = () => {
@@ -29,5 +32,5 @@ export function useWebSocket() {
     }
   }, [])
 
-  return { ws: wsRef.current, connected }
+  return { ws: wsRef.current, connected, ready }
 }

@@ -89,7 +89,7 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
 
       {showTransfer && (
         <TransferModal
-          users={usersList}
+          users={allUsers.filter(u => u.accountNumber !== user.accountNumber)}
           currentUser={user}
           onTransfer={(to, amount) => {
             onTransfer(to, amount)
@@ -151,7 +151,7 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
       )}
 
       {/* Sidebar */}
-      <aside style={{
+      <aside className="desktop-sidebar" style={{
         width: '240px',
         background: 'rgba(255, 255, 255, 0.02)',
         borderRight: '1px solid rgba(255, 255, 255, 0.06)',
@@ -213,7 +213,7 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
       </aside>
 
       {/* Main Content */}
-      <main style={{ flex: 1, padding: '24px 32px', overflowY: 'auto', maxHeight: '100vh' }}>
+      <main className="main-content" style={{ flex: 1, padding: '24px 32px', overflowY: 'auto', maxHeight: '100vh' }}>
         {/* Header */}
         <header style={{
           display: 'flex', justifyContent: 'space-between', alignItems: 'center',
@@ -276,7 +276,7 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
         {activeTab === 'overview' && (
           <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
             {/* Balance Card */}
-            <div style={{
+            <div className="balance-card" style={{
               background: 'linear-gradient(135deg, #1a2a4a, #0f1f3a)',
               border: '1px solid rgba(255, 255, 255, 0.08)',
               borderRadius: '20px',
@@ -287,7 +287,7 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
                 <div>
                   <p style={{ fontSize: '13px', color: '#888', marginBottom: '8px' }}>Main Wallet Balance</p>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <h2 style={{
+                    <h2 className="balance-amount" style={{
                       fontSize: '36px', fontWeight: '800', color: '#fff',
                       filter: showBalance ? 'none' : 'blur(8px)',
                       transition: 'filter 0.3s',
@@ -376,7 +376,7 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
             </div>
 
             {/* Quick Actions */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '28px' }}>
+            <div className="action-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '28px' }}>
               {[
                 { icon: <Send size={20} />, label: 'Transfer', color: '#4a9eff', action: () => setShowTransfer(true) },
                 { icon: <PiggyBank size={20} />, label: 'Save', color: '#00d4aa', action: () => setShowSave(true) },
@@ -414,13 +414,12 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
               ))}
             </div>
 
-            {/* Connected Users */}
-            {usersList.length > 0 && (
-              <div style={{
-                background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid rgba(255, 255, 255, 0.06)',
-                borderRadius: '16px', padding: '20px', marginBottom: '28px',
-              }}>
+            {/* Recently Contacted */}
+            <div style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              borderRadius: '16px', padding: '20px', marginBottom: '28px',
+            }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                   <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#fff' }}>
                     Recently Contacted ({contactedUsers.length})
@@ -476,7 +475,6 @@ export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, 
                   </>
                 )}
               </div>
-            )}
 
             {/* Transactions */}
             <div style={{
