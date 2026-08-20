@@ -5,6 +5,7 @@ import { formatNaira } from '../utils/helpers'
 export default function SaveModal({ balance, threshold, onSave, onUpdateThreshold, onClose }) {
   const [selectedThreshold, setSelectedThreshold] = useState(threshold || 100)
   const [selectedPeriod, setSelectedPeriod] = useState('flex')
+  const [showPeriodPicker, setShowPeriodPicker] = useState(false)
   const [done, setDone] = useState(false)
 
   const periods = [
@@ -15,8 +16,14 @@ export default function SaveModal({ balance, threshold, onSave, onUpdateThreshol
     { id: '365day', label: '1 Year', desc: 'Best returns', icon: <LockIcon size={14} />, color: '#ef4444', days: 365 },
   ]
 
-  const handleSetThreshold = (nearest) => {
-    setSelectedThreshold(nearest)
+  const handleThresholdClick = (n) => {
+    setSelectedThreshold(n)
+    setShowPeriodPicker(true)
+  }
+
+  const handlePeriodSelect = (periodId) => {
+    setSelectedPeriod(periodId)
+    setShowPeriodPicker(false)
   }
 
   const handleConfirm = () => {
@@ -27,18 +34,108 @@ export default function SaveModal({ balance, threshold, onSave, onUpdateThreshol
     setTimeout(() => onClose(), 1200)
   }
 
+  const selectedPeriodObj = periods.find(p => p.id === selectedPeriod)
+
+  // Period picker popup
+  if (showPeriodPicker) {
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 1000,
+        background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(8px)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '16px',
+      }}>
+        <div style={{
+          background: '#1a1a2e', border: '1px solid rgba(255, 255, 255, 0.08)',
+          borderRadius: '24px', padding: '28px 24px', width: '100%', maxWidth: '380px',
+          animation: 'fadeIn 0.2s ease-out',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#fff' }}>Savings Period</h2>
+            <button onClick={() => setShowPeriodPicker(false)} style={{
+              background: 'rgba(255, 255, 255, 0.06)', border: 'none',
+              borderRadius: '8px', padding: '8px', cursor: 'pointer', color: '#888',
+            }}>
+              <X size={18} />
+            </button>
+          </div>
+
+          <p style={{ fontSize: '12px', color: '#888', marginBottom: '16px', lineHeight: 1.5 }}>
+            Choose how long your ₦{selectedThreshold.toLocaleString()} spare change stays locked. Longer periods earn higher interest.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+            {periods.map(p => (
+              <button
+                key={p.id}
+                onClick={() => handlePeriodSelect(p.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                  padding: '14px 16px', borderRadius: '12px',
+                  border: selectedPeriod === p.id
+                    ? `1px solid ${p.color}`
+                    : '1px solid rgba(255, 255, 255, 0.06)',
+                  background: selectedPeriod === p.id
+                    ? `${p.color}15`
+                    : 'rgba(255, 255, 255, 0.03)',
+                  cursor: 'pointer', transition: 'all 0.2s',
+                  textAlign: 'left',
+                }}
+              >
+                <div style={{
+                  width: '32px', height: '32px', borderRadius: '8px',
+                  background: selectedPeriod === p.id ? `${p.color}25` : 'rgba(255,255,255,0.05)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: selectedPeriod === p.id ? p.color : '#666',
+                  flexShrink: 0,
+                }}>
+                  {p.icon}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{
+                    fontSize: '14px', fontWeight: '600',
+                    color: selectedPeriod === p.id ? '#fff' : '#aaa',
+                  }}>{p.label}</p>
+                  <p style={{ fontSize: '11px', color: '#666' }}>{p.desc}</p>
+                </div>
+                {selectedPeriod === p.id && (
+                  <Check size={16} color={p.color} />
+                )}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() => setShowPeriodPicker(false)}
+            style={{
+              width: '100%', padding: '14px',
+              background: 'linear-gradient(135deg, #00d4aa, #00a882)',
+              border: 'none', borderRadius: '12px',
+              color: '#fff', fontSize: '15px', fontWeight: '600', cursor: 'pointer',
+            }}
+          >
+            Continue
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Main modal
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 1000,
       background: 'rgba(0, 0, 0, 0.7)', backdropFilter: 'blur(8px)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
+      padding: '16px',
     }}>
       <div style={{
         background: '#1a1a2e', border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderRadius: '24px', padding: '32px', width: '100%', maxWidth: '420px',
+        borderRadius: '24px', padding: '28px 24px', width: '100%', maxWidth: '420px',
         animation: 'fadeIn 0.3s ease-out',
+        maxHeight: '90vh', overflowY: 'auto',
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#fff' }}>Auto Savings</h2>
           <button onClick={onClose} style={{
             background: 'rgba(255, 255, 255, 0.06)', border: 'none',
@@ -50,10 +147,10 @@ export default function SaveModal({ balance, threshold, onSave, onUpdateThreshol
 
         {/* Balance display */}
         <div style={{
-          textAlign: 'center', padding: '14px', borderRadius: '14px',
+          textAlign: 'center', padding: '12px', borderRadius: '14px',
           background: 'rgba(255, 255, 255, 0.03)',
           border: '1px solid rgba(255, 255, 255, 0.06)',
-          marginBottom: '24px',
+          marginBottom: '20px',
         }}>
           <p style={{ fontSize: '12px', color: '#888', marginBottom: '4px' }}>Current Balance</p>
           <p style={{ fontSize: '22px', fontWeight: '700', color: '#fff' }}>{formatNaira(balance)}</p>
@@ -71,14 +168,14 @@ export default function SaveModal({ balance, threshold, onSave, onUpdateThreshol
             <p style={{ fontSize: '13px', fontWeight: '600', color: '#00d4aa' }}>Round-Down Threshold</p>
           </div>
           <p style={{ fontSize: '12px', color: '#888', marginBottom: '14px', lineHeight: 1.5 }}>
-            After every transfer or withdrawal, if your balance has spare change above the nearest amount, it gets saved automatically.
+            After every transfer, spare change above the nearest amount gets saved automatically.
           </p>
 
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {[10, 50, 100, 500, 1000].map(n => (
               <button
                 key={n}
-                onClick={() => handleSetThreshold(n)}
+                onClick={() => handleThresholdClick(n)}
                 style={{
                   padding: '10px 16px', borderRadius: '10px',
                   border: selectedThreshold === n ? '1px solid #00d4aa' : '1px solid rgba(255, 255, 255, 0.1)',
@@ -92,78 +189,33 @@ export default function SaveModal({ balance, threshold, onSave, onUpdateThreshol
               </button>
             ))}
           </div>
-
-          {/* Example */}
-          <div style={{
-            padding: '10px 12px', borderRadius: '8px',
-            background: 'rgba(255, 255, 255, 0.03)',
-            fontSize: '11px', color: '#888', lineHeight: 1.5,
-          }}>
-            Example: Balance ₦6,420 → nearest ₦{selectedThreshold.toLocaleString()} → ₦{(() => {
-              const rem = 6420 % selectedThreshold
-              return rem === 0 ? '0 saved (already clean)' : `${rem.toLocaleString()} saved`
-            })()}
-          </div>
         </div>
 
-        {/* Savings Period */}
+        {/* Selected summary + change period link */}
         <div style={{
-          padding: '16px', borderRadius: '14px',
-          background: 'rgba(168, 85, 247, 0.06)',
-          border: '1px solid rgba(168, 85, 247, 0.1)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '14px 16px', borderRadius: '12px',
+          background: 'rgba(255, 255, 255, 0.03)',
+          border: '1px solid rgba(255, 255, 255, 0.06)',
           marginBottom: '20px',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <Clock size={16} color="#a855f7" />
-            <p style={{ fontSize: '13px', fontWeight: '600', color: '#a855f7' }}>Savings Period</p>
+          <div>
+            <p style={{ fontSize: '12px', color: '#888', marginBottom: '2px' }}>Savings Period</p>
+            <p style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>{selectedPeriodObj?.label}</p>
           </div>
-          <p style={{ fontSize: '12px', color: '#888', marginBottom: '14px', lineHeight: 1.5 }}>
-            Choose how long your auto-saved spare change stays locked. Longer periods earn higher interest.
-          </p>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {periods.map(p => (
-              <button
-                key={p.id}
-                onClick={() => setSelectedPeriod(p.id)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '12px',
-                  padding: '12px 14px', borderRadius: '12px',
-                  border: selectedPeriod === p.id
-                    ? `1px solid ${p.color}`
-                    : '1px solid rgba(255, 255, 255, 0.06)',
-                  background: selectedPeriod === p.id
-                    ? `${p.color}15`
-                    : 'rgba(255, 255, 255, 0.03)',
-                  cursor: 'pointer', transition: 'all 0.2s',
-                  textAlign: 'left',
-                }}
-              >
-                <div style={{
-                  width: '28px', height: '28px', borderRadius: '8px',
-                  background: selectedPeriod === p.id ? `${p.color}25` : 'rgba(255,255,255,0.05)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: selectedPeriod === p.id ? p.color : '#666',
-                  flexShrink: 0,
-                }}>
-                  {p.icon}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <p style={{
-                    fontSize: '13px', fontWeight: '600',
-                    color: selectedPeriod === p.id ? '#fff' : '#aaa',
-                  }}>{p.label}</p>
-                  <p style={{ fontSize: '11px', color: '#666' }}>{p.desc}</p>
-                </div>
-                {selectedPeriod === p.id && (
-                  <Check size={16} color={p.color} />
-                )}
-              </button>
-            ))}
-          </div>
+          <button
+            onClick={() => setShowPeriodPicker(true)}
+            style={{
+              background: 'rgba(168, 85, 247, 0.1)', border: '1px solid rgba(168, 85, 247, 0.2)',
+              borderRadius: '8px', padding: '6px 12px', cursor: 'pointer',
+              color: '#a855f7', fontSize: '12px', fontWeight: '500',
+            }}
+          >
+            Change
+          </button>
         </div>
 
-        {/* Confirm button — only for setting the threshold */}
+        {/* Confirm button */}
         <button
           onClick={handleConfirm}
           disabled={done}
@@ -187,15 +239,13 @@ export default function SaveModal({ balance, threshold, onSave, onUpdateThreshol
           ) : (
             <>
               <PiggyBank size={18} />
-              Save — ₦{selectedThreshold.toLocaleString()} · {periods.find(p => p.id === selectedPeriod)?.label}
+              Save — ₦{selectedThreshold.toLocaleString()} · {selectedPeriodObj?.label}
             </>
           )}
         </button>
 
         <p style={{ fontSize: '11px', color: '#555', textAlign: 'center', marginTop: '12px' }}>
-          {selectedPeriod === 'flex'
-            ? 'No money deducted now. Spare change auto-saves after your next transfer.'
-            : `Spare change auto-saves after transfers. Locked for ${periods.find(p => p.id === selectedPeriod)?.days} days with interest.`}
+          No money deducted now. Spare change auto-saves after your next transfer.
         </p>
       </div>
     </div>
