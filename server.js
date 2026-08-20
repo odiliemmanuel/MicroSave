@@ -195,6 +195,7 @@ wss.on('connection', (ws) => {
           transactions: [],
           inflowHistory: [],
           nudgeHistory: [],
+          contacts: [],
         }
         users.set(accNum, user)
         ws.accountNumber = accNum
@@ -214,6 +215,26 @@ wss.on('connection', (ws) => {
             connectedBank: user.connectedBank,
             transactions: user.transactions,
           },
+        }))
+
+        broadcastUsers(wss.clients)
+      }
+
+      if (msg.type === 'signin') {
+        let foundUser = null
+        users.forEach((user) => {
+          if (user.email === msg.email) foundUser = user
+        })
+        if (!foundUser) {
+          ws.send(JSON.stringify({ type: 'error', message: 'No account found with this email' }))
+          return
+        }
+
+        ws.accountNumber = foundUser.accountNumber
+
+        ws.send(JSON.stringify({
+          type: 'signup_success',
+          user: getUserPayload(foundUser),
         }))
 
         broadcastUsers(wss.clients)
@@ -283,6 +304,14 @@ wss.on('connection', (ws) => {
           timestamp: new Date().toISOString(),
         }
         receiver.transactions.unshift(txIn)
+
+        // Track contacts
+        if (!sender.contacts.includes(receiver.accountNumber)) {
+          sender.contacts.push(receiver.accountNumber)
+        }
+        if (!receiver.contacts.includes(sender.accountNumber)) {
+          receiver.contacts.push(sender.accountNumber)
+        }
 
         // Auto round-down savings for sender
         const senderAutoSave = applyAutoSave(sender)

@@ -2,12 +2,11 @@ import { useState, useEffect } from 'react'
 import {
   Eye, EyeOff, Copy, ArrowUpRight, ArrowDownLeft, PiggyBank,
   TrendingUp, Zap, Target, Users, Award, Bell, ChevronRight,
-  Send, CreditCard, Check, Lock, Unlock, Settings, Link2,
+  Send, Check, Lock, Unlock, Settings, Link2,
   Building2, Shield, BarChart3, Globe
 } from 'lucide-react'
 import { formatNaira, timeAgo } from '../utils/helpers'
 import TransferModal from './TransferModal'
-import WithdrawModal from './WithdrawModal'
 import SaveModal from './SaveModal'
 import LockModal from './LockModal'
 import OpenBankingConnect from './OpenBankingConnect'
@@ -17,10 +16,9 @@ import SavingsChallenges from './SavingsChallenges'
 import CommunitySavings from './CommunitySavings'
 import AiNudges from './AiNudges'
 
-export default function Dashboard({ user, allUsers, onTransfer, onWithdraw, onSave, onLock, onUnlock, onConnectBank, onUpdateThreshold, connected }) {
+export default function Dashboard({ user, allUsers, onTransfer, onSave, onLock, onUnlock, onConnectBank, onUpdateThreshold, connected, autoSaveNotif }) {
   const [showBalance, setShowBalance] = useState(true)
   const [showTransfer, setShowTransfer] = useState(false)
-  const [showWithdraw, setShowWithdraw] = useState(false)
   const [showSave, setShowSave] = useState(false)
   const [showLock, setShowLock] = useState(false)
   const [showConnectBank, setShowConnectBank] = useState(false)
@@ -41,7 +39,8 @@ export default function Dashboard({ user, allUsers, onTransfer, onWithdraw, onSa
     setTimeout(() => setCopied(false), 2000)
   }
 
-  const usersList = allUsers.filter(u => u.accountNumber !== user.accountNumber)
+  const [showAllUsers, setShowAllUsers] = useState(false)
+  const contactedUsers = allUsers.filter(u => user.contacts && user.contacts.includes(u.accountNumber))
 
   const txList = user.transactions && user.transactions.length > 0 ? user.transactions : [
     { id: 1, type: 'transfer_in', amount: 5000, fromName: 'Welcome Bonus', timestamp: new Date().toISOString() },
@@ -53,6 +52,41 @@ export default function Dashboard({ user, allUsers, onTransfer, onWithdraw, onSa
     <div style={{ display: 'flex', minHeight: '100vh', background: '#0a0a1a' }}>
       <NotificationToast notifications={notifications} />
 
+      {/* Auto-Save Pop-up Notification */}
+      {autoSaveNotif && (
+        <div style={{
+          position: 'fixed', top: '20px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 9999, animation: 'slideInUp 0.4s ease-out',
+        }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '12px',
+            padding: '14px 20px', borderRadius: '14px',
+            background: 'linear-gradient(135deg, rgba(0, 212, 170, 0.15), rgba(0, 168, 130, 0.1))',
+            border: '1px solid rgba(0, 212, 170, 0.3)',
+            backdropFilter: 'blur(16px)',
+            boxShadow: '0 8px 32px rgba(0, 212, 170, 0.2)',
+            minWidth: '320px',
+          }}>
+            <div style={{
+              width: '36px', height: '36px', borderRadius: '10px',
+              background: 'linear-gradient(135deg, #00d4aa, #00a882)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              animation: 'pulse 1s ease-in-out',
+            }}>
+              <PiggyBank size={18} color="#fff" />
+            </div>
+            <div>
+              <p style={{ fontSize: '10px', color: '#00d4aa', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                Auto-Saved
+              </p>
+              <p style={{ fontSize: '14px', fontWeight: '600', color: '#fff' }}>
+                {autoSaveNotif.message}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showTransfer && (
         <TransferModal
           users={usersList}
@@ -63,18 +97,6 @@ export default function Dashboard({ user, allUsers, onTransfer, onWithdraw, onSa
             addNotification(`Transferred ${formatNaira(amount)} successfully!`, 'success')
           }}
           onClose={() => setShowTransfer(false)}
-        />
-      )}
-
-      {showWithdraw && (
-        <WithdrawModal
-          balance={user.balance}
-          onWithdraw={(amount) => {
-            onWithdraw(amount)
-            setShowWithdraw(false)
-            addNotification(`Withdrew ${formatNaira(amount)} successfully!`, 'success')
-          }}
-          onClose={() => setShowWithdraw(false)}
         />
       )}
 
@@ -354,10 +376,9 @@ export default function Dashboard({ user, allUsers, onTransfer, onWithdraw, onSa
             </div>
 
             {/* Quick Actions */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '28px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '28px' }}>
               {[
                 { icon: <Send size={20} />, label: 'Transfer', color: '#4a9eff', action: () => setShowTransfer(true) },
-                { icon: <CreditCard size={20} />, label: 'Withdraw', color: '#ff6b6b', action: () => setShowWithdraw(true) },
                 { icon: <PiggyBank size={20} />, label: 'Save', color: '#00d4aa', action: () => setShowSave(true) },
                 { icon: <Lock size={20} />, label: 'Lock', color: '#a855f7', action: () => setShowLock(true) },
               ].map((item, i) => (
@@ -400,32 +421,60 @@ export default function Dashboard({ user, allUsers, onTransfer, onWithdraw, onSa
                 border: '1px solid rgba(255, 255, 255, 0.06)',
                 borderRadius: '16px', padding: '20px', marginBottom: '28px',
               }}>
-                <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#fff', marginBottom: '14px' }}>
-                  Online Users
-                </h3>
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  {usersList.map(u => (
-                    <div key={u.accountNumber} style={{
-                      display: 'flex', alignItems: 'center', gap: '10px',
-                      padding: '10px 14px', borderRadius: '12px',
-                      background: 'rgba(0, 212, 170, 0.05)',
-                      border: '1px solid rgba(0, 212, 170, 0.1)',
-                    }}>
-                      <div style={{
-                        width: '32px', height: '32px', borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #00d4aa, #00a882)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '14px', fontWeight: '600', color: '#fff',
-                      }}>
-                        {u.name.charAt(0)}
-                      </div>
-                      <div>
-                        <p style={{ fontSize: '13px', fontWeight: '600', color: '#ddd' }}>{u.name}</p>
-                        <p style={{ fontSize: '11px', color: '#888', fontFamily: 'monospace' }}>{u.accountNumber}</p>
-                      </div>
-                    </div>
-                  ))}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: '600', color: '#fff' }}>
+                    Recently Contacted ({contactedUsers.length})
+                  </h3>
+                  {contactedUsers.length > 4 && (
+                    <button
+                      onClick={() => setShowAllUsers(!showAllUsers)}
+                      style={{
+                        background: 'none', border: 'none', color: '#00d4aa',
+                        fontSize: '13px', cursor: 'pointer', display: 'flex',
+                        alignItems: 'center', gap: '4px',
+                      }}
+                    >
+                      {showAllUsers ? 'Show Less' : 'View All'}
+                      <ChevronRight size={14} style={{ transform: showAllUsers ? 'rotate(90deg)' : 'none', transition: 'transform 0.2s' }} />
+                    </button>
+                  )}
                 </div>
+                {contactedUsers.length === 0 ? (
+                  <p style={{ fontSize: '13px', color: '#555', padding: '10px 0' }}>
+                    No contacts yet. Make a transfer to start building your contacts.
+                  </p>
+                ) : (
+                  <>
+                    <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                      {(showAllUsers ? contactedUsers : contactedUsers.slice(0, 4)).map(u => (
+                        <div key={u.accountNumber} style={{
+                          display: 'flex', alignItems: 'center', gap: '10px',
+                          padding: '10px 14px', borderRadius: '12px',
+                          background: 'rgba(0, 212, 170, 0.05)',
+                          border: '1px solid rgba(0, 212, 170, 0.1)',
+                        }}>
+                          <div style={{
+                            width: '32px', height: '32px', borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #00d4aa, #00a882)',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '14px', fontWeight: '600', color: '#fff',
+                          }}>
+                            {u.name.charAt(0)}
+                          </div>
+                          <div>
+                            <p style={{ fontSize: '13px', fontWeight: '600', color: '#ddd' }}>{u.name}</p>
+                            <p style={{ fontSize: '11px', color: '#888', fontFamily: 'monospace' }}>{u.accountNumber}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {!showAllUsers && contactedUsers.length > 4 && (
+                      <p style={{ fontSize: '12px', color: '#555', marginTop: '10px' }}>
+                        +{contactedUsers.length - 4} more
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
             )}
 

@@ -6,6 +6,7 @@ import { useWebSocket } from './hooks/useWebSocket'
 function App() {
   const [user, setUser] = useState(null)
   const [allUsers, setAllUsers] = useState([])
+  const [autoSaveNotif, setAutoSaveNotif] = useState(null)
   const { ws, connected } = useWebSocket()
 
   useEffect(() => {
@@ -20,6 +21,18 @@ function App() {
 
       if (msg.type === 'users_update') {
         setAllUsers(msg.users)
+      }
+
+      if (msg.type === 'auto_save') {
+        // Update user state with new balance and savings
+        setUser(prev => prev ? {
+          ...prev,
+          balance: msg.balance,
+          savings: msg.savings,
+        } : prev)
+        // Show auto-save notification
+        setAutoSaveNotif({ id: Date.now(), message: msg.message, amount: msg.amount })
+        setTimeout(() => setAutoSaveNotif(null), 4000)
       }
 
       if (msg.type === 'salary_nudge') {
@@ -41,6 +54,12 @@ function App() {
     }
   }
 
+  const handleSignIn = (email) => {
+    if (ws && connected) {
+      ws.send(JSON.stringify({ type: 'signin', email }))
+    }
+  }
+
   const handleConnectBank = (bankName) => {
     if (ws && connected && user) {
       ws.send(JSON.stringify({ type: 'connect_bank', accountNumber: user.accountNumber, bankName }))
@@ -50,12 +69,6 @@ function App() {
   const handleTransfer = (to, amount) => {
     if (ws && connected && user) {
       ws.send(JSON.stringify({ type: 'transfer', from: user.accountNumber, to, amount: parseFloat(amount) }))
-    }
-  }
-
-  const handleWithdraw = (amount) => {
-    if (ws && connected && user) {
-      ws.send(JSON.stringify({ type: 'withdraw', accountNumber: user.accountNumber, amount: parseFloat(amount) }))
     }
   }
 
@@ -84,7 +97,7 @@ function App() {
   }
 
   if (!user) {
-    return <Signup onSignup={handleSignup} />
+    return <Signup onSignup={handleSignup} onSignIn={handleSignIn} />
   }
 
   return (
@@ -92,13 +105,13 @@ function App() {
       user={user}
       allUsers={allUsers}
       onTransfer={handleTransfer}
-      onWithdraw={handleWithdraw}
       onSave={handleSave}
       onLock={handleLock}
       onUnlock={handleUnlock}
       onConnectBank={handleConnectBank}
       onUpdateThreshold={handleUpdateThreshold}
       connected={connected}
+      autoSaveNotif={autoSaveNotif}
     />
   )
 }

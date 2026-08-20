@@ -1,16 +1,25 @@
 import { useState } from 'react'
-import { Wallet, ArrowRight, Shield, Zap, Users } from 'lucide-react'
+import { Wallet, ArrowRight, Shield, Zap, Users, LogIn } from 'lucide-react'
 
-export default function Signup({ onSignup }) {
+export default function Signup({ onSignup, onSignIn }) {
+  const [mode, setMode] = useState('signup')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = (e) => {
+  const handleSignup = (e) => {
     e.preventDefault()
     if (name && email) {
       setLoading(true)
       onSignup(name, email)
+    }
+  }
+
+  const handleSignIn = (e) => {
+    e.preventDefault()
+    if (email) {
+      setLoading(true)
+      onSignIn(email)
     }
   }
 
@@ -90,7 +99,7 @@ export default function Signup({ onSignup }) {
           </div>
         </div>
 
-        {/* Right side - Signup Form */}
+        {/* Right side - Form */}
         <div style={{
           background: 'rgba(255, 255, 255, 0.03)',
           border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -98,85 +107,148 @@ export default function Signup({ onSignup }) {
           padding: '40px',
           animation: 'fadeIn 0.6s ease-out 0.2s both',
         }}>
-          <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>Create your account</h2>
-          <p style={{ fontSize: '14px', color: '#888', marginBottom: '28px' }}>Start saving in under a minute</p>
-
-          <form onSubmit={handleSubmit}>
-            <div style={{ marginBottom: '18px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#aaa', marginBottom: '6px' }}>Full Name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Enter your full name"
-                required
-                style={{
-                  width: '100%',
-                  padding: '14px 16px',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '12px',
-                  color: '#fff',
-                  fontSize: '15px',
-                  outline: 'none',
-                  transition: 'border-color 0.2s',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
-                onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
-              />
-            </div>
-
-            <div style={{ marginBottom: '24px' }}>
-              <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#aaa', marginBottom: '6px' }}>Email Address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                required
-                style={{
-                  width: '100%',
-                  padding: '14px 16px',
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '12px',
-                  color: '#fff',
-                  fontSize: '15px',
-                  outline: 'none',
-                  transition: 'border-color 0.2s',
-                }}
-                onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
-                onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
-              />
-            </div>
-
+          {/* Mode toggle */}
+          <div style={{
+            display: 'flex', gap: '4px', padding: '4px',
+            background: 'rgba(255, 255, 255, 0.03)', borderRadius: '10px',
+            marginBottom: '24px',
+          }}>
             <button
-              type="submit"
-              disabled={!name || !email || loading}
+              onClick={() => { setMode('signup'); setLoading(false) }}
               style={{
-                width: '100%',
-                padding: '14px',
-                background: name && email ? 'linear-gradient(135deg, #00d4aa, #00a882)' : 'rgba(255, 255, 255, 0.1)',
-                border: 'none',
-                borderRadius: '12px',
-                color: name && email ? '#fff' : '#666',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: name && email ? 'pointer' : 'not-allowed',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                transition: 'all 0.3s',
+                flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
+                background: mode === 'signup' ? 'rgba(0, 212, 170, 0.15)' : 'transparent',
+                color: mode === 'signup' ? '#00d4aa' : '#888',
+                fontSize: '14px', fontWeight: '600', cursor: 'pointer',
               }}
             >
-              {loading ? 'Setting up...' : 'Get Started'}
-              {!loading && <ArrowRight size={18} />}
+              Sign Up
             </button>
-          </form>
+            <button
+              onClick={() => { setMode('signin'); setLoading(false) }}
+              style={{
+                flex: 1, padding: '10px', borderRadius: '8px', border: 'none',
+                background: mode === 'signin' ? 'rgba(0, 212, 170, 0.15)' : 'transparent',
+                color: mode === 'signin' ? '#00d4aa' : '#888',
+                fontSize: '14px', fontWeight: '600', cursor: 'pointer',
+              }}
+            >
+              Sign In
+            </button>
+          </div>
+
+          {mode === 'signup' ? (
+            <>
+              <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>Create your account</h2>
+              <p style={{ fontSize: '14px', color: '#888', marginBottom: '28px' }}>Start saving in under a minute</p>
+
+              <form onSubmit={handleSignup}>
+                <div style={{ marginBottom: '18px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#aaa', marginBottom: '6px' }}>Full Name</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter your full name"
+                    required
+                    style={{
+                      width: '100%', padding: '14px 16px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '12px', color: '#fff', fontSize: '15px', outline: 'none',
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                    onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#aaa', marginBottom: '6px' }}>Email Address</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    style={{
+                      width: '100%', padding: '14px 16px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '12px', color: '#fff', fontSize: '15px', outline: 'none',
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                    onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!name || !email || loading}
+                  style={{
+                    width: '100%', padding: '14px',
+                    background: name && email ? 'linear-gradient(135deg, #00d4aa, #00a882)' : 'rgba(255, 255, 255, 0.1)',
+                    border: 'none', borderRadius: '12px',
+                    color: name && email ? '#fff' : '#666',
+                    fontSize: '16px', fontWeight: '600',
+                    cursor: name && email ? 'pointer' : 'not-allowed',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  }}
+                >
+                  {loading ? 'Setting up...' : 'Get Started'}
+                  {!loading && <ArrowRight size={18} />}
+                </button>
+              </form>
+            </>
+          ) : (
+            <>
+              <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#fff', marginBottom: '8px' }}>Welcome back</h2>
+              <p style={{ fontSize: '14px', color: '#888', marginBottom: '28px' }}>Sign in with your email address</p>
+
+              <form onSubmit={handleSignIn}>
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: '500', color: '#aaa', marginBottom: '6px' }}>Email Address</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                    autoFocus
+                    style={{
+                      width: '100%', padding: '14px 16px',
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '12px', color: '#fff', fontSize: '15px', outline: 'none',
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = '#00d4aa'}
+                    onBlur={(e) => e.target.style.borderColor = 'rgba(255, 255, 255, 0.1)'}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!email || loading}
+                  style={{
+                    width: '100%', padding: '14px',
+                    background: email ? 'linear-gradient(135deg, #00d4aa, #00a882)' : 'rgba(255, 255, 255, 0.1)',
+                    border: 'none', borderRadius: '12px',
+                    color: email ? '#fff' : '#666',
+                    fontSize: '16px', fontWeight: '600',
+                    cursor: email ? 'pointer' : 'not-allowed',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  }}
+                >
+                  {loading ? 'Signing in...' : 'Sign In'}
+                  {!loading && <LogIn size={18} />}
+                </button>
+              </form>
+            </>
+          )}
 
           <p style={{ fontSize: '12px', color: '#555', textAlign: 'center', marginTop: '16px' }}>
-            By signing up, you agree to our Terms of Service
+            {mode === 'signup'
+              ? 'By signing up, you agree to our Terms of Service'
+              : "Don't have an account? Switch to Sign Up"}
           </p>
         </div>
       </div>
