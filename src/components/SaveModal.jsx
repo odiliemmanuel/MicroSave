@@ -1,10 +1,19 @@
 import { useState } from 'react'
-import { X, PiggyBank, Sparkles, Check } from 'lucide-react'
+import { X, PiggyBank, Sparkles, Check, Clock, Zap, Calendar, Lock as LockIcon } from 'lucide-react'
 import { formatNaira } from '../utils/helpers'
 
 export default function SaveModal({ balance, threshold, onSave, onUpdateThreshold, onClose }) {
   const [selectedThreshold, setSelectedThreshold] = useState(threshold || 100)
+  const [selectedPeriod, setSelectedPeriod] = useState('flex')
   const [done, setDone] = useState(false)
+
+  const periods = [
+    { id: 'flex', label: 'Flex', desc: 'No lock — withdraw anytime', icon: <Zap size={14} />, color: '#00d4aa', days: 0 },
+    { id: '30day', label: '30 Days', desc: 'Lock for 1 month', icon: <Clock size={14} />, color: '#4a9eff', days: 30 },
+    { id: '90day', label: '90 Days', desc: 'Lock for 3 months', icon: <Calendar size={14} />, color: '#a855f7', days: 90 },
+    { id: '180day', label: '6 Months', desc: 'Lock for 6 months', icon: <Calendar size={14} />, color: '#f59e0b', days: 180 },
+    { id: '365day', label: '1 Year', desc: 'Best returns', icon: <LockIcon size={14} />, color: '#ef4444', days: 365 },
+  ]
 
   const handleSetThreshold = (nearest) => {
     setSelectedThreshold(nearest)
@@ -12,7 +21,7 @@ export default function SaveModal({ balance, threshold, onSave, onUpdateThreshol
 
   const handleConfirm = () => {
     if (onUpdateThreshold) {
-      onUpdateThreshold(selectedThreshold)
+      onUpdateThreshold(selectedThreshold, selectedPeriod)
     }
     setDone(true)
     setTimeout(() => onClose(), 1200)
@@ -97,6 +106,63 @@ export default function SaveModal({ balance, threshold, onSave, onUpdateThreshol
           </div>
         </div>
 
+        {/* Savings Period */}
+        <div style={{
+          padding: '16px', borderRadius: '14px',
+          background: 'rgba(168, 85, 247, 0.06)',
+          border: '1px solid rgba(168, 85, 247, 0.1)',
+          marginBottom: '20px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+            <Clock size={16} color="#a855f7" />
+            <p style={{ fontSize: '13px', fontWeight: '600', color: '#a855f7' }}>Savings Period</p>
+          </div>
+          <p style={{ fontSize: '12px', color: '#888', marginBottom: '14px', lineHeight: 1.5 }}>
+            Choose how long your auto-saved spare change stays locked. Longer periods earn higher interest.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {periods.map(p => (
+              <button
+                key={p.id}
+                onClick={() => setSelectedPeriod(p.id)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '12px',
+                  padding: '12px 14px', borderRadius: '12px',
+                  border: selectedPeriod === p.id
+                    ? `1px solid ${p.color}`
+                    : '1px solid rgba(255, 255, 255, 0.06)',
+                  background: selectedPeriod === p.id
+                    ? `${p.color}15`
+                    : 'rgba(255, 255, 255, 0.03)',
+                  cursor: 'pointer', transition: 'all 0.2s',
+                  textAlign: 'left',
+                }}
+              >
+                <div style={{
+                  width: '28px', height: '28px', borderRadius: '8px',
+                  background: selectedPeriod === p.id ? `${p.color}25` : 'rgba(255,255,255,0.05)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: selectedPeriod === p.id ? p.color : '#666',
+                  flexShrink: 0,
+                }}>
+                  {p.icon}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{
+                    fontSize: '13px', fontWeight: '600',
+                    color: selectedPeriod === p.id ? '#fff' : '#aaa',
+                  }}>{p.label}</p>
+                  <p style={{ fontSize: '11px', color: '#666' }}>{p.desc}</p>
+                </div>
+                {selectedPeriod === p.id && (
+                  <Check size={16} color={p.color} />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Confirm button — only for setting the threshold */}
         <button
           onClick={handleConfirm}
@@ -116,18 +182,20 @@ export default function SaveModal({ balance, threshold, onSave, onUpdateThreshol
           {done ? (
             <>
               <Check size={18} />
-              Threshold Set!
+              Auto Savings Configured!
             </>
           ) : (
             <>
               <PiggyBank size={18} />
-              Save — Set Threshold to ₦{selectedThreshold.toLocaleString()}
+              Save — ₦{selectedThreshold.toLocaleString()} · {periods.find(p => p.id === selectedPeriod)?.label}
             </>
           )}
         </button>
 
         <p style={{ fontSize: '11px', color: '#555', textAlign: 'center', marginTop: '12px' }}>
-          No money is deducted now. Saving starts after your next transfer or withdrawal.
+          {selectedPeriod === 'flex'
+            ? 'No money deducted now. Spare change auto-saves after your next transfer.'
+            : `Spare change auto-saves after transfers. Locked for ${periods.find(p => p.id === selectedPeriod)?.days} days with interest.`}
         </p>
       </div>
     </div>

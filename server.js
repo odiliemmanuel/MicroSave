@@ -76,6 +76,7 @@ function getUserPayload(user) {
     lockTier: user.lockTier,
     lockExpiry: user.lockExpiry,
     roundUpThreshold: user.roundUpThreshold,
+    savingsPeriod: user.savingsPeriod || 'flex',
     connectedBank: user.connectedBank,
     transactions: user.transactions,
   }
@@ -209,6 +210,7 @@ wss.on('connection', (ws) => {
           lockTier: null,
           lockExpiry: null,
           roundUpThreshold: 100,
+          savingsPeriod: 'flex',
           connectedBank: null,
           transactions: [],
           inflowHistory: [],
@@ -230,6 +232,7 @@ wss.on('connection', (ws) => {
             lockTier: user.lockTier,
             lockExpiry: user.lockExpiry,
             roundUpThreshold: user.roundUpThreshold,
+            savingsPeriod: user.savingsPeriod,
             connectedBank: user.connectedBank,
             transactions: user.transactions,
           },
@@ -566,10 +569,11 @@ wss.on('connection', (ws) => {
         }
 
         user.roundUpThreshold = msg.threshold
+        if (msg.period) user.savingsPeriod = msg.period
 
         ws.send(JSON.stringify({
           type: 'threshold_updated',
-          user: { accountNumber: user.accountNumber, name: user.name, balance: user.balance, savings: user.savings, lockedSavings: user.lockedSavings, roundUpThreshold: user.roundUpThreshold, connectedBank: user.connectedBank, transactions: user.transactions },
+          user: { accountNumber: user.accountNumber, name: user.name, balance: user.balance, savings: user.savings, lockedSavings: user.lockedSavings, roundUpThreshold: user.roundUpThreshold, savingsPeriod: user.savingsPeriod, connectedBank: user.connectedBank, transactions: user.transactions },
         }))
 
         broadcastUsers(wss.clients)

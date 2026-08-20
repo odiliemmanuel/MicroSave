@@ -88,9 +88,9 @@ function App() {
     }
   }
 
-  const handleUpdateThreshold = (threshold) => {
+  const handleUpdateThreshold = (threshold, period) => {
     if (ws && connected && user) {
-      ws.send(JSON.stringify({ type: 'update_threshold', accountNumber: user.accountNumber, threshold }))
+      ws.send(JSON.stringify({ type: 'update_threshold', accountNumber: user.accountNumber, threshold, period }))
     }
   }
 
